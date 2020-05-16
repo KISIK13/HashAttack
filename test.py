@@ -4,13 +4,13 @@
 #Далее идет выбор режима атаки(bruteforce/dictionary)
 #Задаются критерии для атаки
 #Производится атака
-#В случае успеха программа выводит начальную строку
+#В случае успеха программа выводит прообраз
 #
 #Кузнецов Максим Дмитриевич ККСО-01-16
 
 
 ''' импорт нужных библиотек (для взятя хешей,работы со временем,работы со словарем)'''
-import hashlib, sys, time
+import hashlib, sys, time, random
 from itertools import product
     
 ''' функция, которая выбирает нужный алгоритм '''
@@ -51,7 +51,8 @@ class Control( object ):
                 self.decrypted_hash = self.dictionary_attack()#вызываем метод dictionary_attack,реализующий атаку по словарю
             elif self.attack_mode == 'b':#если режим атаки  = 'b'(bruteforce attack)
                 self.decrypted_hash = self.bruteforce_arrack()#вызываем методa bruteforce_arrack, реализующий брутфорс атаку
-            
+            elif self.attack_mode == 'h':
+                self.decrypted_hash = self.happyBirthdayParadox_attack()
             if self.decrypted_hash != None: # Если удалось провести атаку(успешно)
                 self.elapsed = (time.time() - self.start) # высчитываем время, за которое атака была проведена
                 print('Атака на хеш была произведена за '+str(self.elapsed)+' секунд. Правильное слово: '+self.decrypted_hash)# выводим его на экран и правильное слово
@@ -93,11 +94,13 @@ class Control( object ):
     '''метод выбора режима атаки'''
     def get_attack_mode(self):
         while True:
-            attack_mode = input("Введите 'b' для брутфорс атаки или 'd' для атаки по словарю ")
+            attack_mode = input("Введите 'b' для брутфорс атаки, 'd' для атаки по словарю, 'h' для атаки парадокса дней рождения: ")
             if attack_mode.lower() == 'b':
                 return attack_mode
             elif attack_mode.lower() == 'd':
                 return attack_mode
+            elif attack_mode.lower() == 'h':
+               return attack_mode
             else:
                 self.retry('неверно введен режим атаки')
             
@@ -126,7 +129,22 @@ class Control( object ):
                 word = ''.join(p)
                 if self.hashtype(word) == self.user_hash:
                     return word
-                
+
+    def happyBirthdayParadox_attack(self):
+        dict = '1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM'
+        minlen = int(input('Введите минимальную длину '))
+        maxlen = int(input('Введите макисмальную длину '))
+        print('Производится атака \n\n\n')
+        self.start = time.time()#засекаем время начала
+        for i in range (pow(2,len(self.user_hash) - 1)):
+            word = ''
+            for j in range (random.randint(minlen, maxlen)):
+                word += random.choice( dict )
+            if(self.hashtype(word) == self.user_hash):
+                break;
+        return word
+
+    
     '''Метод повторного действия(если что то пошло не так)'''            
     def retry(self, failure_type):
         # используется для неверного хеша, неправильного пути/типа словаря,если введен неправильный ответ на выбор атаки
